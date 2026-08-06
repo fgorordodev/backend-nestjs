@@ -6,6 +6,7 @@ import {
 import { ValidationError } from 'class-validator';
 
 import { mapValidationErrors } from '../validation/map-validation-errors';
+import { ErrorCode } from '../errors';
 
 @Injectable()
 export class ApiValidationPipe extends ValidationPipe {
@@ -20,6 +21,7 @@ export class ApiValidationPipe extends ValidationPipe {
             ) => {
                 return new BadRequestException({
                     message: 'Los datos enviados no son válidos',
+                    errorCode: ErrorCode.VALIDATION_ERROR,
                     errors: mapValidationErrors(validationErrors),
                 });
             },

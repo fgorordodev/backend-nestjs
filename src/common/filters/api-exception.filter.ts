@@ -13,6 +13,11 @@ import {
   ApiFieldError,
   ApiResponse,
 } from '../types/api-response.type';
+import {
+  ErrorCode,
+  isErrorCode,
+  type ErrorCode as ErrorCodeType,
+} from '../errors';
 
 function isApiFieldErrorArray(
   value: unknown,
@@ -49,6 +54,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     const message = this.getMessage(exception, status);
     const errors = this.getErrors(exception);
+    const errorCode = this.getErrorCode(
+      exception,
+      status,
+    );
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
@@ -62,6 +71,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const response: ApiResponse<never> = {
       success: false,
       message,
+      errorCode,
       data: null,
       ...(errors ? { errors } : {}),
     };
@@ -159,5 +169,78 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     return HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  private getExplicitErrorCode(
+    exception: unknown,
+  ): ErrorCodeType | undefined {
+    if (!(exception instanceof HttpException)) {
+      return undefined;
+    }
+
+    const response = exception.getResponse();
+
+    if (
+      typeof response !== 'object' ||
+      response === null ||
+      !('errorCode' in response)
+    ) {
+      return undefined;
+    }
+
+    return isErrorCode(response.errorCode)
+      ? response.errorCode
+      : undefined;
+  }
+
+  private getErrorCode(
+    exception: unknown,
+    status: number,
+  ): ErrorCodeType {
+    const explicitErrorCode =
+      this.getExplicitErrorCode(exception);
+
+    if (explicitErrorCode) {
+      return explicitErrorCode;
+    }
+
+    if (!(exception instanceof HttpException)) {
+      if (status === HttpStatus.BAD_REQUEST) {
+        return ErrorCode.INVALID_REQUEST_BODY;
+      }
+
+      if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
+        return ErrorCode.PAYLOAD_TOO_LARGE;
+      }
+    }
+
+    switch (status) {
+      case HttpStatus.BAD_REQUEST:
+        return ErrorCode.BAD_REQUEST;
+
+      case HttpStatus.UNAUTHORIZED:
+        return ErrorCode.UNAUTHORIZED;
+
+      case HttpStatus.FORBIDDEN:
+        return ErrorCode.FORBIDDEN;
+
+      case HttpStatus.NOT_FOUND:
+        return ErrorCode.NOT_FOUND;
+
+      case HttpStatus.CONFLICT:
+        return ErrorCode.CONFLICT;
+
+      case HttpStatus.PAYLOAD_TOO_LARGE:
+        return ErrorCode.PAYLOAD_TOO_LARGE;
+
+      case HttpStatus.TOO_MANY_REQUESTS:
+        return ErrorCode.TOO_MANY_REQUESTS;
+
+      case HttpStatus.SERVICE_UNAVAILABLE:
+        return ErrorCode.SERVICE_UNAVAILABLE;
+
+      default:
+        return ErrorCode.INTERNAL_SERVER_ERROR;
+    }
   }
 }

@@ -1,3 +1,5 @@
+import { ErrorCode } from "../errors";
+
 export type ApiResponse<T> =
     | {
         success: true;
@@ -7,6 +9,7 @@ export type ApiResponse<T> =
     | {
         success: false;
         message: string;
+        errorCode: ErrorCode;
         errors?: ApiFieldError[];
         data: null;
     };
