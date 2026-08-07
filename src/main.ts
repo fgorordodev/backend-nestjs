@@ -10,6 +10,7 @@ import {
   configureRequestContext,
   configureRequestLogging,
   configureShutdown,
+  configureSwagger,
 } from './config/bootstrap';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
@@ -26,6 +27,7 @@ async function bootstrap() {
   configureCors(app, config);
   configureBodyParser(app, config);
   configureHttp(app, config);
+  configureSwagger(app,config);
   configureShutdown(app);
 
   await app.listen(config.port);
