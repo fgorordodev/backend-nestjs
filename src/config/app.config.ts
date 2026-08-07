@@ -38,4 +38,5 @@ export default registerAs('app', () => ({
 
     trustIncomingRequestId:
         process.env.TRUST_INCOMING_REQUEST_ID === 'true',
+        
 }));
