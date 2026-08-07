@@ -16,6 +16,8 @@ import {
   APP_INTERCEPTOR,
   APP_PIPE,
 } from '@nestjs/core';
+import { HealthModule } from './health/health.module';
+import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 
 
 @Module({
@@ -35,7 +37,8 @@ import {
     }),
     RequestContextModule,
     LoggingModule,
-
+    HealthModule,
+    RateLimitModule,
   ],
   controllers: [AppController],
   providers: [

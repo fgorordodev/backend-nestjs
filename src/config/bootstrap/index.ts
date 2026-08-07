@@ -6,3 +6,4 @@ export * from './shutdown.config';
 export * from './request-context.config';
 export * from './request-logging.config';
 export * from './swagger.config';
+export * from './proxy.config';

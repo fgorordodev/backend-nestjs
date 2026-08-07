@@ -33,4 +33,19 @@ export const envValidationSchema = Joi.object({
         .falsy('false')
         .default(false),
 
+    TRUST_PROXY: Joi.string()
+        .trim()
+        .allow('')
+        .default(''),
+
+    RATE_LIMIT_TTL_MS: Joi.number()
+        .integer()
+        .positive()
+        .default(60_000),
+
+    RATE_LIMIT_MAX: Joi.number()
+        .integer()
+        .positive()
+        .default(100),
+
 });

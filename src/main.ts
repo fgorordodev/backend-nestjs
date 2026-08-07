@@ -7,6 +7,7 @@ import {
   configureCors,
   configureHelmet,
   configureHttp,
+  configureProxy,
   configureRequestContext,
   configureRequestLogging,
   configureShutdown,
@@ -19,6 +20,7 @@ async function bootstrap() {
 
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
+  configureProxy(app, config);
   configureHelmet(app);
 
   configureRequestContext(app);

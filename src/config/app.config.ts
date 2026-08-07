@@ -38,5 +38,17 @@ export default registerAs('app', () => ({
 
     trustIncomingRequestId:
         process.env.TRUST_INCOMING_REQUEST_ID === 'true',
-        
+
+    trustProxy:
+        process.env.TRUST_PROXY?.trim() || false,
+
+    rateLimit: {
+        ttlMs: Number(
+            process.env.RATE_LIMIT_TTL_MS ?? 60_000,
+        ),
+        maxRequests: Number(
+            process.env.RATE_LIMIT_MAX ?? 100,
+        ),
+    },
+
 }));
