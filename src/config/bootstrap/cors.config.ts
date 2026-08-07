@@ -11,6 +11,12 @@ export function configureCors(
     app.enableCors({
         origin: config.corsOrigins,
         credentials: config.corsCredentials,
-        exposedHeaders: [REQUEST_ID_HEADER],
+        exposedHeaders: [
+            REQUEST_ID_HEADER,
+            'x-ratelimit-limit',
+            'x-ratelimit-remaining',
+            'x-ratelimit-reset',
+            'retry-after',
+        ],
     });
 }

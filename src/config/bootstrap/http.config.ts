@@ -1,5 +1,6 @@
 import {
     INestApplication,
+    RequestMethod,
     VersioningType,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
@@ -10,7 +11,18 @@ export function configureHttp(
     app: INestApplication,
     config: ConfigType<typeof appConfig>,
 ): void {
-    app.setGlobalPrefix(config.apiPrefix);
+    app.setGlobalPrefix(config.apiPrefix, {
+        exclude: [
+            {
+                path: 'health/live',
+                method: RequestMethod.GET,
+            },
+            {
+                path: 'health/ready',
+                method: RequestMethod.GET,
+            },
+        ],
+    });
 
     app.enableVersioning({
         type: VersioningType.URI,

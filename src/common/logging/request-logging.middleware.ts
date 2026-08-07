@@ -10,6 +10,11 @@ import {
 } from 'express';
 import { RequestContextService } from '../../request-context';
 
+const SILENT_SUCCESS_PATHS = new Set([
+    '/health/live',
+    '/health/ready',
+]);
+
 @Injectable()
 export class RequestLoggingMiddleware
     implements NestMiddleware {
@@ -36,6 +41,16 @@ export class RequestLoggingMiddleware
             }
 
             wasLogged = true;
+
+            const isSuccessfulHealthCheck =
+                !aborted &&
+                response.statusCode >= 200 &&
+                response.statusCode < 400 &&
+                SILENT_SUCCESS_PATHS.has(request.path);
+
+            if (isSuccessfulHealthCheck) {
+                return;
+            }
 
             const durationMs = this.calculateDuration(
                 startedAt,
