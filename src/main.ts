@@ -2,8 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import appConfig from './config/app.config';
 import { ConfigType } from '@nestjs/config';
-import { configureBodyParser, configureCors, configureHelmet, configureHttp, configureShutdown } from './config/bootstrap';
-import helmet from 'helmet';
+import {
+  configureBodyParser,
+  configureCors,
+  configureHelmet,
+  configureHttp,
+  configureRequestContext,
+  configureRequestLogging,
+  configureShutdown,
+} from './config/bootstrap';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
@@ -12,6 +19,10 @@ async function bootstrap() {
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
   configureHelmet(app);
+
+  configureRequestContext(app);
+  configureRequestLogging(app);
+
   configureCors(app, config);
   configureBodyParser(app, config);
   configureHttp(app, config);

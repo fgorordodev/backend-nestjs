@@ -35,4 +35,7 @@ export default registerAs('app', () => ({
 
     bodyLimit:
         process.env.BODY_LIMIT ?? '1mb',
+
+    trustIncomingRequestId:
+        process.env.TRUST_INCOMING_REQUEST_ID === 'true',
 }));

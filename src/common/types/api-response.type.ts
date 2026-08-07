@@ -10,6 +10,7 @@ export type ApiResponse<T> =
         success: false;
         message: string;
         errorCode: ErrorCode;
+        requestId: string;
         errors?: ApiFieldError[];
         data: null;
     };

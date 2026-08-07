@@ -19,6 +19,10 @@ import {
   type ErrorCode as ErrorCodeType,
 } from '../errors';
 
+import { randomUUID } from 'node:crypto';
+import { REQUEST_ID_HEADER, RequestContextService } from '../../request-context';
+
+
 function isApiFieldErrorArray(
   value: unknown,
 ): value is ApiFieldError[] {
@@ -44,41 +48,76 @@ function isApiFieldErrorArray(
 export class ApiExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ApiExceptionFilter.name);
 
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) { }
+  constructor(
+    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly requestContext: RequestContextService,
+  ) { }
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
     const context = host.switchToHttp();
 
+    // Respuesta HTTP real de Express
+    const httpResponse = context.getResponse();
+
     const status = this.getStatus(exception);
 
-    const message = this.getMessage(exception, status);
+    const requestId =
+      this.requestContext.getRequestId() ??
+      randomUUID();
+
+    const message = this.getMessage(
+      exception,
+      status,
+    );
+
     const errors = this.getErrors(exception);
+
     const errorCode = this.getErrorCode(
       exception,
       status,
     );
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error(
-        'Unhandled exception',
-        exception instanceof Error
-          ? exception.stack
-          : String(exception),
-      );
+      this.logger.error({
+        event: 'http_request_failed',
+        requestId,
+        statusCode: status,
+        errorCode,
+        exceptionName:
+          exception instanceof Error
+            ? exception.name
+            : 'UnknownException',
+        exceptionMessage:
+          exception instanceof Error
+            ? exception.message
+            : String(exception),
+        stack:
+          exception instanceof Error
+            ? exception.stack
+            : undefined,
+      });
     }
 
-    const response: ApiResponse<never> = {
+    // Contenido JSON de nuestra API
+    const body: ApiResponse<never> = {
       success: false,
       message,
       errorCode,
+      requestId,
       data: null,
       ...(errors ? { errors } : {}),
     };
 
+    httpAdapter.setHeader(
+      httpResponse,
+      REQUEST_ID_HEADER,
+      requestId,
+    );
+
     httpAdapter.reply(
-      context.getResponse(),
-      response,
+      httpResponse,
+      body,
       status,
     );
   }
@@ -87,6 +126,13 @@ export class ApiExceptionFilter implements ExceptionFilter {
     exception: unknown,
     status: number,
   ): string {
+
+    if (
+      status === HttpStatus.PAYLOAD_TOO_LARGE
+    ) {
+      return 'El cuerpo de la solicitud excede el tamaño máximo permitido';
+    }
+
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
 
@@ -109,16 +155,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return exception.message;
     }
 
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return 'El cuerpo de la solicitud no es válido';
-
-      case HttpStatus.PAYLOAD_TOO_LARGE:
-        return 'El cuerpo de la solicitud excede el tamaño máximo permitido';
-
-      default:
-        return 'Ocurrió un error interno';
-    }
+    return 'Ocurrió un error interno';
   }
 
   private getErrors(
@@ -202,6 +239,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     if (explicitErrorCode) {
       return explicitErrorCode;
+
     }
 
     if (!(exception instanceof HttpException)) {
@@ -243,4 +281,5 @@ export class ApiExceptionFilter implements ExceptionFilter {
         return ErrorCode.INTERNAL_SERVER_ERROR;
     }
   }
+
 }

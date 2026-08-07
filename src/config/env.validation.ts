@@ -27,4 +27,9 @@ export const envValidationSchema = Joi.object({
 
     CORS_CREDENTIALS: Joi.boolean()
         .default(false),
+
+    TRUST_INCOMING_REQUEST_ID: Joi.boolean()
+        .truthy('true')
+        .falsy('false')
+        .default(false),
 });
