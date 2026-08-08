@@ -6,21 +6,18 @@ import { ErrorCode } from './common/errors';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) { }
+  constructor(private readonly appService: AppService) {}
 
   @ApiTags('App')
   @Get()
   @ApiSuccessResponse({
     model: String,
-    description:
-      'Comprueba que la aplicación está funcionando',
+    description: 'Comprueba que la aplicación está funcionando',
   })
   @ApiErrorResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
-    description:
-      'Se produjo un error interno no controlado',
-    errorCode:
-      ErrorCode.INTERNAL_SERVER_ERROR,
+    description: 'Se produjo un error interno no controlado',
+    errorCode: ErrorCode.INTERNAL_SERVER_ERROR,
     message: 'Ocurrió un error interno',
   })
   getHello(): string {

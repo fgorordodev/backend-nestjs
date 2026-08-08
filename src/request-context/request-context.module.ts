@@ -5,13 +5,7 @@ import { RequestContextService } from './request-context.service';
 
 @Global()
 @Module({
-    providers: [
-        RequestContextService,
-        RequestContextMiddleware,
-    ],
-    exports: [
-        RequestContextService,
-        RequestContextMiddleware,
-    ],
+  providers: [RequestContextService, RequestContextMiddleware],
+  exports: [RequestContextService, RequestContextMiddleware],
 })
-export class RequestContextModule { }
+export class RequestContextModule {}

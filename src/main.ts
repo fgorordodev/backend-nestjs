@@ -18,19 +18,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(
-    AppModule,
-    {
-      bufferLogs: true,
-    }
-  );
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
 
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
-  app.useLogger(
-    app.get(Logger),
-  );
-  
+  app.useLogger(app.get(Logger));
+
   configureProxy(app, config);
   configureHelmet(app);
 

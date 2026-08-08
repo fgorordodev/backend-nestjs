@@ -1,20 +1,12 @@
-import {
-  Controller,
-  Get,
-  VERSION_NEUTRAL,
-} from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import {
   HealthCheck,
   HealthCheckResult,
   HealthCheckService,
 } from '@nestjs/terminus';
-import {
-  ApiExcludeController,
-} from '@nestjs/swagger';
+import { ApiExcludeController } from '@nestjs/swagger';
 
-import {
-  ApplicationHealthIndicator,
-} from './application-health.indicator';
+import { ApplicationHealthIndicator } from './application-health.indicator';
 import { SkipThrottle } from '@nestjs/throttler';
 
 @SkipThrottle()
@@ -25,31 +17,19 @@ import { SkipThrottle } from '@nestjs/throttler';
 })
 export class HealthController {
   constructor(
-    private readonly health:
-      HealthCheckService,
-    private readonly application:
-      ApplicationHealthIndicator,
-  ) { }
+    private readonly health: HealthCheckService,
+    private readonly application: ApplicationHealthIndicator,
+  ) {}
 
   @Get('live')
   @HealthCheck()
   liveness(): Promise<HealthCheckResult> {
-    return this.health.check([
-      () =>
-        this.application.isHealthy(
-          'application',
-        ),
-    ]);
+    return this.health.check([() => this.application.isHealthy('application')]);
   }
 
   @Get('ready')
   @HealthCheck()
   readiness(): Promise<HealthCheckResult> {
-    return this.health.check([
-      () =>
-        this.application.isHealthy(
-          'application',
-        ),
-    ]);
+    return this.health.check([() => this.application.isHealthy('application')]);
   }
 }

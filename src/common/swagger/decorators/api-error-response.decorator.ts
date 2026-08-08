@@ -1,75 +1,58 @@
+import { applyDecorators } from '@nestjs/common';
 import {
-    applyDecorators,
-} from '@nestjs/common';
-import {
-    ApiExtraModels,
-    ApiResponse as SwaggerApiResponse,
-    getSchemaPath,
+  ApiExtraModels,
+  ApiResponse as SwaggerApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 
-import {
-    type ErrorCode,
-} from '../../errors';
-import {
-    ApiErrorResponseDto,
-} from '../dto';
+import { type ErrorCode } from '../../errors';
+import { ApiErrorResponseDto } from '../dto';
 
 export type ApiErrorResponseOptions = {
-    status: number;
-    description: string;
-    errorCode: ErrorCode;
-    message: string;
-    includeFieldErrors?: boolean;
+  status: number;
+  description: string;
+  errorCode: ErrorCode;
+  message: string;
+  includeFieldErrors?: boolean;
 };
 
 export function ApiErrorResponse(
-    ...responses: ApiErrorResponseOptions[]
+  ...responses: ApiErrorResponseOptions[]
 ): MethodDecorator {
-    const responseDecorators = responses.map(
-        ({
-            status,
-            description,
-            errorCode,
+  const responseDecorators = responses.map(
+    ({ status, description, errorCode, message, includeFieldErrors = false }) =>
+      SwaggerApiResponse({
+        status,
+        description,
+        schema: {
+          allOf: [
+            {
+              $ref: getSchemaPath(ApiErrorResponseDto),
+            },
+          ],
+          example: {
+            success: false,
             message,
-            includeFieldErrors = false,
-        }) =>
-            SwaggerApiResponse({
-                status,
-                description,
-                schema: {
-                    allOf: [
-                        {
-                            $ref: getSchemaPath(
-                                ApiErrorResponseDto,
-                            ),
-                        },
-                    ],
-                    example: {
-                        success: false,
-                        message,
-                        errorCode,
-                        requestId:
-                            '6426e820-d545-4d33-a11e-a93c762df7e0',
-                        ...(includeFieldErrors
-                            ? {
-                                errors: [
-                                    {
-                                        field: 'email',
-                                        messages: [
-                                            'El email debe tener un formato válido',
-                                        ],
-                                    },
-                                ],
-                            }
-                            : {}),
-                        data: null,
+            errorCode,
+            requestId: '6426e820-d545-4d33-a11e-a93c762df7e0',
+            ...(includeFieldErrors
+              ? {
+                  errors: [
+                    {
+                      field: 'email',
+                      messages: ['El email debe tener un formato válido'],
                     },
-                },
-            }),
-    );
+                  ],
+                }
+              : {}),
+            data: null,
+          },
+        },
+      }),
+  );
 
-    return applyDecorators(
-        ApiExtraModels(ApiErrorResponseDto),
-        ...responseDecorators,
-    );
+  return applyDecorators(
+    ApiExtraModels(ApiErrorResponseDto),
+    ...responseDecorators,
+  );
 }

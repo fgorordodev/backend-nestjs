@@ -1,13 +1,5 @@
-import {
-  applyDecorators,
-  HttpStatus,
-  type Type,
-} from '@nestjs/common';
-import {
-  ApiExtraModels,
-  ApiResponse,
-  getSchemaPath,
-} from '@nestjs/swagger';
+import { applyDecorators, HttpStatus, type Type } from '@nestjs/common';
+import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
 import { ApiSuccessResponseDto } from '../dto';
 
@@ -25,9 +17,7 @@ export function ApiSuccessResponse({
   isArray = false,
 }: ApiSuccessResponseOptions): MethodDecorator {
   const isPrimitiveModel =
-    model === String ||
-    model === Number ||
-    model === Boolean;
+    model === String || model === Number || model === Boolean;
 
   const modelSchema =
     model === String
@@ -49,10 +39,7 @@ export function ApiSuccessResponse({
 
   const extraModels = isPrimitiveModel
     ? ApiExtraModels(ApiSuccessResponseDto)
-    : ApiExtraModels(
-        ApiSuccessResponseDto,
-        model,
-      );
+    : ApiExtraModels(ApiSuccessResponseDto, model);
 
   return applyDecorators(
     extraModels,
@@ -65,9 +52,7 @@ export function ApiSuccessResponse({
           : `ApiSuccessResponseOf${model.name}`,
         allOf: [
           {
-            $ref: getSchemaPath(
-              ApiSuccessResponseDto,
-            ),
+            $ref: getSchemaPath(ApiSuccessResponseDto),
           },
           {
             type: 'object',

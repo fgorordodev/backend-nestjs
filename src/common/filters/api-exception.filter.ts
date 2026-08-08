@@ -9,10 +9,7 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
-import {
-  ApiFieldError,
-  ApiResponse,
-} from '../types/api-response.type';
+import { ApiFieldError, ApiResponse } from '../types/api-response.type';
 import {
   ErrorCode,
   isErrorCode,
@@ -20,12 +17,12 @@ import {
 } from '../errors';
 
 import { randomUUID } from 'node:crypto';
-import { REQUEST_ID_HEADER, RequestContextService } from '../../request-context';
+import {
+  REQUEST_ID_HEADER,
+  RequestContextService,
+} from '../../request-context';
 
-
-function isApiFieldErrorArray(
-  value: unknown,
-): value is ApiFieldError[] {
+function isApiFieldErrorArray(value: unknown): value is ApiFieldError[] {
   return (
     Array.isArray(value) &&
     value.every(
@@ -36,9 +33,7 @@ function isApiFieldErrorArray(
         typeof item.field === 'string' &&
         'messages' in item &&
         Array.isArray(item.messages) &&
-        item.messages.every(
-          (message) => typeof message === 'string',
-        ),
+        item.messages.every((message) => typeof message === 'string'),
     )
   );
 }
@@ -51,7 +46,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
   constructor(
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly requestContext: RequestContextService,
-  ) { }
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
@@ -62,21 +57,13 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     const status = this.getStatus(exception);
 
-    const requestId =
-      this.requestContext.getRequestId() ??
-      randomUUID();
+    const requestId = this.requestContext.getRequestId() ?? randomUUID();
 
-    const message = this.getMessage(
-      exception,
-      status,
-    );
+    const message = this.getMessage(exception, status);
 
     const errors = this.getErrors(exception);
 
-    const errorCode = this.getErrorCode(
-      exception,
-      status,
-    );
+    const errorCode = this.getErrorCode(exception, status);
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error({
@@ -85,17 +72,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
         statusCode: status,
         errorCode,
         exceptionName:
-          exception instanceof Error
-            ? exception.name
-            : 'UnknownException',
+          exception instanceof Error ? exception.name : 'UnknownException',
         exceptionMessage:
-          exception instanceof Error
-            ? exception.message
-            : String(exception),
-        stack:
-          exception instanceof Error
-            ? exception.stack
-            : undefined,
+          exception instanceof Error ? exception.message : String(exception),
+        stack: exception instanceof Error ? exception.stack : undefined,
       });
     }
 
@@ -109,27 +89,13 @@ export class ApiExceptionFilter implements ExceptionFilter {
       ...(errors ? { errors } : {}),
     };
 
-    httpAdapter.setHeader(
-      httpResponse,
-      REQUEST_ID_HEADER,
-      requestId,
-    );
+    httpAdapter.setHeader(httpResponse, REQUEST_ID_HEADER, requestId);
 
-    httpAdapter.reply(
-      httpResponse,
-      body,
-      status,
-    );
+    httpAdapter.reply(httpResponse, body, status);
   }
 
-  private getMessage(
-    exception: unknown,
-    status: number,
-  ): string {
-
-    if (
-      status === HttpStatus.PAYLOAD_TOO_LARGE
-    ) {
+  private getMessage(exception: unknown, status: number): string {
+    if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
       return 'El cuerpo de la solicitud excede el tamaño máximo permitido';
     }
 
@@ -147,9 +113,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       ) {
         const message = response.message;
 
-        return Array.isArray(message)
-          ? message.join(', ')
-          : String(message);
+        return Array.isArray(message) ? message.join(', ') : String(message);
       }
 
       return exception.message;
@@ -158,9 +122,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     return 'Ocurrió un error interno';
   }
 
-  private getErrors(
-    exception: unknown,
-  ): ApiFieldError[] | undefined {
+  private getErrors(exception: unknown): ApiFieldError[] | undefined {
     if (!(exception instanceof HttpException)) {
       return undefined;
     }
@@ -175,9 +137,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return undefined;
     }
 
-    return isApiFieldErrorArray(response.errors)
-      ? response.errors
-      : undefined;
+    return isApiFieldErrorArray(response.errors) ? response.errors : undefined;
   }
 
   private getStatus(exception: unknown): number {
@@ -185,10 +145,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return exception.getStatus();
     }
 
-    if (
-      typeof exception === 'object' &&
-      exception !== null
-    ) {
+    if (typeof exception === 'object' && exception !== null) {
       const status =
         'status' in exception
           ? exception.status
@@ -196,11 +153,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
             ? exception.statusCode
             : undefined;
 
-      if (
-        typeof status === 'number' &&
-        status >= 400 &&
-        status <= 599
-      ) {
+      if (typeof status === 'number' && status >= 400 && status <= 599) {
         return status;
       }
     }
@@ -208,9 +161,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }
 
-  private getExplicitErrorCode(
-    exception: unknown,
-  ): ErrorCodeType | undefined {
+  private getExplicitErrorCode(exception: unknown): ErrorCodeType | undefined {
     if (!(exception instanceof HttpException)) {
       return undefined;
     }
@@ -225,21 +176,14 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return undefined;
     }
 
-    return isErrorCode(response.errorCode)
-      ? response.errorCode
-      : undefined;
+    return isErrorCode(response.errorCode) ? response.errorCode : undefined;
   }
 
-  private getErrorCode(
-    exception: unknown,
-    status: number,
-  ): ErrorCodeType {
-    const explicitErrorCode =
-      this.getExplicitErrorCode(exception);
+  private getErrorCode(exception: unknown, status: number): ErrorCodeType {
+    const explicitErrorCode = this.getExplicitErrorCode(exception);
 
     if (explicitErrorCode) {
       return explicitErrorCode;
-
     }
 
     if (!(exception instanceof HttpException)) {
@@ -281,5 +225,4 @@ export class ApiExceptionFilter implements ExceptionFilter {
         return ErrorCode.INTERNAL_SERVER_ERROR;
     }
   }
-
 }

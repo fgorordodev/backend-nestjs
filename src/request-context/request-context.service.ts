@@ -6,17 +6,13 @@ import { RequestContext } from './request-context.type';
 
 @Injectable()
 export class RequestContextService {
-    private readonly storage =
-        new AsyncLocalStorage<RequestContext>();
+  private readonly storage = new AsyncLocalStorage<RequestContext>();
 
-    run<T>(
-        context: RequestContext,
-        callback: () => T,
-    ): T {
-        return this.storage.run(context, callback);
-    }
+  run<T>(context: RequestContext, callback: () => T): T {
+    return this.storage.run(context, callback);
+  }
 
-    getRequestId(): string | undefined {
-        return this.storage.getStore()?.requestId;
-    }
+  getRequestId(): string | undefined {
+    return this.storage.getStore()?.requestId;
+  }
 }
