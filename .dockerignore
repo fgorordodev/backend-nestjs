@@ -1,0 +1,32 @@
+# Dependencies and build output
+node_modules
+dist
+coverage
+
+# Tests
+test
+**/*.spec.ts
+**/*.e2e-spec.ts
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Version control
+.git
+.gitignore
+
+# Editor and operating-system files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+tmp
+temp
