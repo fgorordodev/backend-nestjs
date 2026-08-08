@@ -51,4 +51,17 @@ export default registerAs('app', () => ({
         ),
     },
 
+    logging: {
+        level:
+            process.env.LOG_LEVEL ??
+            (
+                process.env.NODE_ENV === 'production'
+                    ? 'info'
+                    : 'debug'
+            ),
+    },
+
+    name: process.env.APP_NAME ?? 'backend-base',
+    version: process.env.APP_VERSION ?? '0.0.0',
+
 }));

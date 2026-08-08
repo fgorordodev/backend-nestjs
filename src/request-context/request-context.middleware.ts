@@ -35,14 +35,22 @@ export class RequestContextMiddleware
         response: Response,
         next: NextFunction,
     ): void {
+
+        const assignedRequestId =
+            response.getHeader(REQUEST_ID_HEADER);
+
         const incomingRequestId = request.get(
             REQUEST_ID_HEADER,
         );
 
         const requestId =
-            this.canTrustIncomingRequestId(incomingRequestId)
-                ? incomingRequestId
-                : randomUUID();
+            this.isAssignedRequestId(assignedRequestId)
+                ? assignedRequestId
+                : this.canTrustIncomingRequestId(
+                    incomingRequestId,
+                )
+                    ? incomingRequestId
+                    : randomUUID();
 
         response.setHeader(
             REQUEST_ID_HEADER,
@@ -60,6 +68,15 @@ export class RequestContextMiddleware
     ): requestId is string {
         return (
             this.config.trustIncomingRequestId &&
+            typeof requestId === 'string' &&
+            UUID_PATTERN.test(requestId)
+        );
+    }
+
+    private isAssignedRequestId(
+        requestId: number | string | string[] | undefined,
+    ): requestId is string {
+        return (
             typeof requestId === 'string' &&
             UUID_PATTERN.test(requestId)
         );
