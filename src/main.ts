@@ -12,14 +12,25 @@ import {
   configureRequestLogging,
   configureShutdown,
   configureSwagger,
+  createApplicationLogger,
 } from './config/bootstrap';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    {
+      bufferLogs: true,
+    }
+  );
 
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
+  app.useLogger(
+    app.get(Logger),
+  );
+  
   configureProxy(app, config);
   configureHelmet(app);
 
@@ -29,7 +40,7 @@ async function bootstrap() {
   configureCors(app, config);
   configureBodyParser(app, config);
   configureHttp(app, config);
-  configureSwagger(app,config);
+  configureSwagger(app, config);
   configureShutdown(app);
 
   await app.listen(config.port);

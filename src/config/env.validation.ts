@@ -48,4 +48,23 @@ export const envValidationSchema = Joi.object({
         .positive()
         .default(100),
 
+    LOG_LEVEL: Joi.string()
+        .valid(
+            'trace',
+            'debug',
+            'info',
+            'warn',
+            'error',
+            'fatal',
+            'silent',
+        )
+        .optional(),
+
+    APP_NAME: Joi.string()
+        .trim()
+        .default('backend-base'),
+
+    APP_VERSION: Joi.string()
+        .trim()
+        .default('0.0.0'),
 });

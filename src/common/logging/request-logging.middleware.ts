@@ -75,6 +75,11 @@ export class RequestLoggingMiddleware
                 return;
             }
 
+            if (response.statusCode >= 500) {
+                this.logger.error(event);
+                return;
+            }
+
             this.logger.log(event);
         };
 
