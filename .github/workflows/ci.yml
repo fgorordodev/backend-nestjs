@@ -124,7 +124,10 @@ jobs:
 
       - name: Show container logs
         if: always()
-        run: docker logs backend-base-ci
+        run: |
+          if docker inspect backend-base-ci >/dev/null 2>&1; then
+            docker logs backend-base-ci
+          fi
 
       - name: Remove container
         if: always()
