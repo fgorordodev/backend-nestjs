@@ -12,7 +12,6 @@ import {
   configureRequestLogging,
   configureShutdown,
   configureSwagger,
-  createApplicationLogger,
 } from './config/bootstrap';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from 'nestjs-pino';
@@ -40,4 +39,4 @@ async function bootstrap() {
 
   await app.listen(config.port);
 }
-bootstrap();
+void bootstrap();

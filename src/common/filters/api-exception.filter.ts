@@ -22,18 +22,42 @@ import {
   RequestContextService,
 } from '../../request-context';
 
+const BAD_REQUEST_STATUS: number = HttpStatus.BAD_REQUEST;
+
+const PAYLOAD_TOO_LARGE_STATUS: number = HttpStatus.PAYLOAD_TOO_LARGE;
+
+const INTERNAL_SERVER_ERROR_STATUS: number = HttpStatus.INTERNAL_SERVER_ERROR;
+
+const ERROR_CODE_BY_STATUS: Readonly<Partial<Record<number, ErrorCodeType>>> = {
+  [HttpStatus.BAD_REQUEST]: ErrorCode.BAD_REQUEST,
+
+  [HttpStatus.UNAUTHORIZED]: ErrorCode.UNAUTHORIZED,
+
+  [HttpStatus.FORBIDDEN]: ErrorCode.FORBIDDEN,
+
+  [HttpStatus.NOT_FOUND]: ErrorCode.NOT_FOUND,
+
+  [HttpStatus.CONFLICT]: ErrorCode.CONFLICT,
+
+  [HttpStatus.PAYLOAD_TOO_LARGE]: ErrorCode.PAYLOAD_TOO_LARGE,
+
+  [HttpStatus.TOO_MANY_REQUESTS]: ErrorCode.TOO_MANY_REQUESTS,
+
+  [HttpStatus.SERVICE_UNAVAILABLE]: ErrorCode.SERVICE_UNAVAILABLE,
+};
+
 function isApiFieldErrorArray(value: unknown): value is ApiFieldError[] {
   return (
     Array.isArray(value) &&
     value.every(
-      (item) =>
+      (item: unknown) =>
         typeof item === 'object' &&
         item !== null &&
         'field' in item &&
         typeof item.field === 'string' &&
         'messages' in item &&
         Array.isArray(item.messages) &&
-        item.messages.every((message) => typeof message === 'string'),
+        item.messages.every((message: unknown) => typeof message === 'string'),
     )
   );
 }
@@ -53,7 +77,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const context = host.switchToHttp();
 
     // Respuesta HTTP real de Express
-    const httpResponse = context.getResponse();
+    const httpResponse = context.getResponse<Response>();
 
     const status = this.getStatus(exception);
 
@@ -65,7 +89,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     const errorCode = this.getErrorCode(exception, status);
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= INTERNAL_SERVER_ERROR_STATUS) {
       this.logger.error({
         event: 'http_request_failed',
         requestId,
@@ -95,7 +119,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
   }
 
   private getMessage(exception: unknown, status: number): string {
-    if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
+    if (status === PAYLOAD_TOO_LARGE_STATUS) {
       return 'El cuerpo de la solicitud excede el tamaño máximo permitido';
     }
 
@@ -187,42 +211,15 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     if (!(exception instanceof HttpException)) {
-      if (status === HttpStatus.BAD_REQUEST) {
+      if (status === BAD_REQUEST_STATUS) {
         return ErrorCode.INVALID_REQUEST_BODY;
       }
 
-      if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
+      if (status === PAYLOAD_TOO_LARGE_STATUS) {
         return ErrorCode.PAYLOAD_TOO_LARGE;
       }
     }
 
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return ErrorCode.BAD_REQUEST;
-
-      case HttpStatus.UNAUTHORIZED:
-        return ErrorCode.UNAUTHORIZED;
-
-      case HttpStatus.FORBIDDEN:
-        return ErrorCode.FORBIDDEN;
-
-      case HttpStatus.NOT_FOUND:
-        return ErrorCode.NOT_FOUND;
-
-      case HttpStatus.CONFLICT:
-        return ErrorCode.CONFLICT;
-
-      case HttpStatus.PAYLOAD_TOO_LARGE:
-        return ErrorCode.PAYLOAD_TOO_LARGE;
-
-      case HttpStatus.TOO_MANY_REQUESTS:
-        return ErrorCode.TOO_MANY_REQUESTS;
-
-      case HttpStatus.SERVICE_UNAVAILABLE:
-        return ErrorCode.SERVICE_UNAVAILABLE;
-
-      default:
-        return ErrorCode.INTERNAL_SERVER_ERROR;
-    }
+    return ERROR_CODE_BY_STATUS[status] ?? ErrorCode.INTERNAL_SERVER_ERROR;
   }
 }
