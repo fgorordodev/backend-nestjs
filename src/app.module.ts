@@ -12,7 +12,7 @@ import appConfig from './config/app.config';
 import { LoggingModule } from './common/logging/logging.module';
 
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { HealthModule } from './health/health.module';
+import { HealthModule } from './modules/health/health.module';
 import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 
 @Module({
